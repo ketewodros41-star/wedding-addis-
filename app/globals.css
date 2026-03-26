@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface-variant: #e6e2dd;
+  --color-background: #fdf9f4;
+  --color-secondary: #29695b;
+  --color-secondary-fixed: #afefdd;
+  --color-on-error: #ffffff;
+  --color-on-primary-fixed-variant: #574500;
+  --color-surface-container-low: #f7f3ee;
+  --color-surface-dim: #ddd9d5;
+  --color-secondary-fixed-dim: #94d3c1;
+  --color-primary-fixed: #ffe088;
+  --color-on-surface: #1c1c19;
+  --color-outline: #7f7663;
+  --color-on-secondary-container: #2e6d5f;
+  --color-on-secondary: #ffffff;
+  --color-inverse-primary: #e9c349;
+  --color-primary-container: #d4af37;
+  --color-tertiary-fixed-dim: #ffb3b5;
+  --color-tertiary-fixed: #ffdada;
+  --color-inverse-surface: #31302d;
+  --color-surface-bright: #fdf9f4;
+  --color-error-container: #ffdad6;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-primary-fixed: #241a00;
+  --color-on-primary-container: #554300;
+  --color-on-tertiary-fixed-variant: #8e0f28;
+  --color-on-tertiary-fixed: #40000b;
+  --color-on-tertiary: #ffffff;
+  --color-error: #ba1a1a;
+  --color-secondary-container: #acedda;
+  --color-surface-container: #f1ede8;
+  --color-inverse-on-surface: #f4f0eb;
+  --color-on-error-container: #93000a;
+  --color-on-secondary-fixed: #00201a;
+  --color-on-primary: #ffffff;
+  --color-surface-container-highest: #e6e2dd;
+  --color-on-surface-variant: #4d4635;
+  --color-on-tertiary-container: #8c0d27;
+  --color-primary: #735c00;
+  --color-surface-container-high: #ebe8e3;
+  --color-surface: #fdf9f4;
+  --color-on-secondary-fixed-variant: #065043;
+  --color-tertiary: #af2b3e;
+  --color-on-background: #1c1c19;
+  --color-surface-tint: #735c00;
+  --color-outline-variant: #d0c5af;
+  --color-primary-fixed-dim: #e9c349;
+  --color-tertiary-container: #ff959a;
+
+  --font-headline: var(--font-noto-serif);
+  --font-body: var(--font-manrope);
+  --font-label: var(--font-manrope);
+
+  --radius: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Custom backgrounds and utilities */
+.tibeb-pattern {
+    background-color: transparent;
+    background-image: radial-gradient(#735c00 0.5px, transparent 0.5px), radial-gradient(#735c00 0.5px, #fdf9f4 0.5px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    opacity: 0.05;
+}
+
+.tibeb-pattern-svg {
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0l20 20-20 20L0 20z' fill='%23735c00' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.glass-panel {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.hero-gradient {
+    background: linear-gradient(to right, rgba(115, 92, 0, 0.4), rgba(212, 175, 55, 0.2));
+}
+
+body {
+  margin: 0;
+}
