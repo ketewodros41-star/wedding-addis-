@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const STORIES = [
@@ -69,12 +70,20 @@ export default function WeddingStories() {
     const [activeStoryIndex, setActiveStoryIndex] = useState(0);
     const [activePartIndex, setActivePartIndex] = useState(0);
     const [progress, setProgress] = useState(0);
+    const scrollLockRef = useRef(0);
 
     const closeStory = useCallback(() => {
         setViewerOpen(false);
         setActivePartIndex(0);
         setProgress(0);
-        document.body.style.overflow = 'auto';
+
+        // Restore scroll for all devices including iOS
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        window.scrollTo(0, scrollLockRef.current);
     }, []);
 
     const nextPart = useCallback(() => {
@@ -130,7 +139,14 @@ export default function WeddingStories() {
         setActivePartIndex(0);
         setProgress(0);
         setViewerOpen(true);
-        document.body.style.overflow = 'hidden';
+
+        // Robust Scroll Lock for iOS Safari
+        scrollLockRef.current = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollLockRef.current}px`;
+        document.body.style.width = '100%';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
     };
 
     const activeStory = STORIES[activeStoryIndex];
@@ -138,14 +154,14 @@ export default function WeddingStories() {
 
     return (
         <>
-            <section className="py-20 bg-background text-center">
-                <div className="max-w-screen-2xl mx-auto px-8 relative z-10">
-                    <h2 className="font-headline font-bold text-4xl mb-2 tracking-tight">Stories of Forever</h2>
+            <section className="py-16 sm:py-20 bg-background text-center">
+                <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 relative z-10">
+                    <h2 className="font-headline font-bold text-3xl sm:text-4xl mb-2 tracking-tight">Stories of Forever</h2>
                     <p className="text-on-surface-variant font-body mb-16 italic">Tap any story to preview a wedding moment.</p>
 
-                    <div className="flex justify-center gap-12 md:gap-20 overflow-x-auto pb-8 no-scrollbar">
+                    <div className="flex justify-start sm:justify-center gap-8 sm:gap-12 md:gap-20 overflow-x-auto pb-8 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                         {STORIES.map((story, i) => (
-                            <div key={story.id} onClick={() => openStory(i)} className="flex flex-col items-center gap-4 shrink-0 cursor-pointer group">
+                            <button key={story.id} type="button" onClick={() => openStory(i)} className="flex flex-col items-center gap-4 shrink-0 cursor-pointer group touch-manipulation bg-transparent">
                                 <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-1.5 bg-gradient-to-tr from-amber-400 via-rose-500 to-primary shadow-lg group-hover:scale-110 transition-transform duration-300">
                                     <div className="w-full h-full rounded-full border-[3px] border-background overflow-hidden bg-surface-container">
                                         <img src={story.avatar} alt={story.couple} className="w-full h-full object-cover" />
@@ -155,7 +171,7 @@ export default function WeddingStories() {
                                     <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1 block whitespace-nowrap">{story.title}</span>
                                     <span className="text-sm font-headline italic font-medium text-on-surface group-hover:text-primary transition-colors">{story.couple}</span>
                                 </div>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -167,15 +183,20 @@ export default function WeddingStories() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black/98 backdrop-blur-2xl flex items-center justify-center p-0 md:p-8"
+                        className="fixed inset-0 z-[100] bg-black/98 backdrop-blur-2xl flex items-center justify-center p-0 md:p-8 overscroll-contain touch-none"
                     >
                         {/* Static Content / Background Blur */}
                         <div className="absolute inset-0 z-[-1] overflow-hidden">
                             <img src={activePart.image} className="w-full h-full object-cover opacity-20 blur-3xl scale-110" alt="" />
                         </div>
 
-                        {/* Close button */}
-                        <button onClick={closeStory} className="absolute top-8 right-8 z-[150] text-white/40 hover:text-white transition-colors bg-white/10 rounded-full p-2 backdrop-blur-md">
+                        {/* Close button - high z-index and larger hit area */}
+                        <button
+                            onClick={closeStory}
+                            className="absolute top-6 right-6 md:top-8 md:right-8 z-[200] text-white/40 hover:text-white transition-colors bg-white/10 rounded-full p-3 backdrop-blur-md active:scale-95"
+                            aria-label="Close story"
+                            type="button"
+                        >
                             <span className="material-symbols-outlined text-2xl">close</span>
                         </button>
 
@@ -183,7 +204,7 @@ export default function WeddingStories() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="relative aspect-[9/16] h-full max-h-[850px] w-full max-w-[480px] mx-auto bg-stone-900 md:rounded-3xl shadow-2xl overflow-hidden border border-white/5"
+                            className="relative aspect-[9/16] h-[100dvh] md:h-full max-h-[100dvh] md:max-h-[850px] w-full max-w-[480px] mx-auto bg-stone-900 md:rounded-3xl shadow-2xl overflow-hidden border border-white/5"
                         >
                             <AnimatePresence mode="wait">
                                 <motion.img
@@ -227,9 +248,9 @@ export default function WeddingStories() {
                                     </div>
                                 </div>
 
-                                {/* Click Zones */}
-                                <div onClick={prevPart} className="absolute inset-y-32 left-0 w-1/4 z-10 cursor-pointer"></div>
-                                <div onClick={nextPart} className="absolute inset-y-32 right-0 w-3/4 z-10 cursor-pointer"></div>
+                                {/* Click Zones - 50/50 split for intuitive navigation */}
+                                <button type="button" aria-label="Previous story" onClick={(e) => { e.stopPropagation(); prevPart(); }} className="absolute inset-y-0 left-0 w-1/2 z-10 cursor-pointer touch-none bg-transparent"></button>
+                                <button type="button" aria-label="Next story" onClick={(e) => { e.stopPropagation(); nextPart(); }} className="absolute inset-y-0 right-0 w-1/2 z-10 cursor-pointer touch-none bg-transparent"></button>
 
                                 {/* Bottom Info */}
                                 <div className="z-20 pb-4">
@@ -244,14 +265,14 @@ export default function WeddingStories() {
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <button className="bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/10 px-6 py-2 rounded-full flex items-center gap-2 transition-all">
+                                        <button className="bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/10 px-6 py-2 rounded-full flex items-center gap-2 transition-all" type="button">
                                             <span className="text-white text-[10px] font-bold uppercase tracking-widest">Story Info</span>
                                         </button>
                                         <div className="flex gap-6">
-                                            <button className="text-white/60 hover:text-white transition-colors">
+                                            <button className="text-white/60 hover:text-white transition-colors" type="button">
                                                 <span className="material-symbols-outlined">favorite</span>
                                             </button>
-                                            <button className="text-white/60 hover:text-white transition-colors">
+                                            <button className="text-white/60 hover:text-white transition-colors" type="button">
                                                 <span className="material-symbols-outlined">share</span>
                                             </button>
                                         </div>

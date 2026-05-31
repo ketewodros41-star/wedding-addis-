@@ -105,3 +105,78 @@ INSERT INTO public.venues (name, location, capacity, images, description) VALUES
 ('Skylight Grand Ballroom', 'Bole, Addis Ababa', 1500, ARRAY['https://lh3.googleusercontent.com/aida-public/AB6AXuCY1aqFZR2gOL9lZTP-_PVWhWOqPxvPsfznPVPoZhyWrTE_cxeFG614bAmJBmVRPUdbcLcs_FML8cVnKpyxxU4c9KFe-05nOHqcrl-d15IL4CVcT6j6RdfhTHbRPpswnTCi3QJBhAe29pRCoamq4VTzLfZGFBD4lEbLeN83huAn8suyhPiU0SRjguOd8xuQJHN4HafcWD7gHTg7T5FhyzDf1-iIwqTxBhhtqTxVCru-jhYi_RP6nLggK81XOzIqESFH-1OS-LO3mSs'], 'Luxury grand ballroom in Addis Ababa with massive chandeliers, gold-leaf pillars and velvet seating for a high-end wedding.'),
 ('Entoto Forest Gardens', 'Entoto Hills', 400, ARRAY['https://lh3.googleusercontent.com/aida-public/AB6AXuCQW8k8P_d2b-_cneDSAYLy6seE4U5uyrfBX87vWbEMh0JSLHFW4GxggjDPSZ2sWBBpPuB_4Vpq8eXfLW6YaY9mzUkigIPokyAUQ2xAbUQ-ARgh9Eb5P80a_n-ZdtvUae4uFGzCrU6mEb9RrPE7rOSCVtyJDBOzT1ywdT0eay5cpxNLj9g1riIbQrbrGZrezk93ZPWZQGqFU-nb5vciH46-_arA2WuXEnM4zMDpRBBTFwnanIt_rLgWr_biUFc9OoR2SrK3QpV11YI'], 'Lush botanical garden wedding venue in the Ethiopian highlands featuring a white floral archway and wooden seating.'),
 ('The Hyatt Regency Terrace', 'Meskel Square', 250, ARRAY['https://lh3.googleusercontent.com/aida-public/AB6AXuDaRTpRSenyBc2V5VBs5rRM0_tmXB9SUrFSUvEvqlZU2qvuyd_k0hPHE39vsst1P3U_g6PFRXsZyNbOmcNaKi_2NO2i72akDidi6_tao2lDHE9ZD9-uzNp_CtVWWW91ejDVSD2QmLPvVy6kvewVkRB8bZzb75QHlMCYBAOgTQW-mnaqDCJS3nSSNC7k9wzv4r-W3N4UF2w9EtKbgwd6EefQHRhmGcDE67M7p8cGXlSAyiwRRXN7jsHW9tILh9A8cU1ihVoK5FBtXEw'], 'Sophisticated hotel rooftop wedding venue overlooking the Addis Ababa skyline at twilight with modern cocktail lounge furniture.');
+
+-- EXTENSION FOR MVP EXPANSION
+
+-- Extend bookings table with richer fields
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS bride_name TEXT,
+  ADD COLUMN IF NOT EXISTS groom_name TEXT,
+  ADD COLUMN IF NOT EXISTS phone TEXT,
+  ADD COLUMN IF NOT EXISTS wedding_type TEXT,
+  ADD COLUMN IF NOT EXISTS ceremony_type TEXT,
+  ADD COLUMN IF NOT EXISTS preferred_area TEXT,
+  ADD COLUMN IF NOT EXISTS budget_range TEXT,
+  ADD COLUMN IF NOT EXISTS themes TEXT[] DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS vision_notes TEXT,
+  ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;
+
+-- Planner tasks
+CREATE TABLE IF NOT EXISTS public.planner_tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  booking_id UUID REFERENCES public.bookings(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  category TEXT DEFAULT 'general',
+  completed BOOLEAN DEFAULT false,
+  due_date DATE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Guests
+CREATE TABLE IF NOT EXISTS public.guests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  booking_id UUID REFERENCES public.bookings(id) ON DELETE CASCADE,
+  full_name TEXT NOT NULL,
+  phone TEXT,
+  email TEXT,
+  invited BOOLEAN DEFAULT true,
+  attending BOOLEAN,
+  plus_one BOOLEAN DEFAULT false,
+  table_assignment TEXT,
+  dietary_notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RSVPs (linked to invitation slug)
+CREATE TABLE IF NOT EXISTS public.rsvps (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  invitation_id UUID REFERENCES public.invitations(id) ON DELETE CASCADE,
+  guest_name TEXT NOT NULL,
+  attending BOOLEAN NOT NULL,
+  guest_count INT DEFAULT 1,
+  dietary_notes TEXT,
+  message TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add slug + public flag to invitations
+ALTER TABLE public.invitations
+  ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE,
+  ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true,
+  ADD COLUMN IF NOT EXISTS wedding_message TEXT;
+
+-- RLS for new tables
+ALTER TABLE public.planner_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rsvps ENABLE ROW LEVEL SECURITY;
+
+-- POLICIES for new tables
+CREATE POLICY "Users manage own tasks" ON public.planner_tasks FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own guests" ON public.guests FOR ALL USING (
+  auth.uid() = (SELECT user_id FROM public.bookings WHERE id = booking_id)
+);
+CREATE POLICY "Anyone can submit RSVP" ON public.rsvps FOR INSERT WITH CHECK (true);
+CREATE POLICY "Invitation owner views RSVPs" ON public.rsvps FOR SELECT USING (
+  auth.uid() = (SELECT user_id FROM public.invitations WHERE id = invitation_id)
+);

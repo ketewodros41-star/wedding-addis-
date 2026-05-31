@@ -28,7 +28,7 @@ export default function Testimonials() {
                 <h2 className="font-headline text-4xl font-bold text-on-surface">Eternal Memories</h2>
             </div>
 
-            <div className="flex gap-12 px-8 overflow-x-auto no-scrollbar snap-x snap-mandatory justify-center">
+            <div className="flex flex-col md:flex-row gap-8 md:gap-12 px-6 md:px-8 overflow-x-auto md:no-scrollbar snap-x snap-mandatory justify-center items-center">
                 {testimonials.map((testimonial, index) => (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}

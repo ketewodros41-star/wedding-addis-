@@ -5,252 +5,284 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Users, Star, Filter, ArrowRight, X, Navigation, Info, Search } from 'lucide-react';
+import VenueMap from '@/components/VenueMap';
 
 export default function VenuesExplorer() {
     const [venues, setVenues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedVenue, setSelectedVenue] = useState<any>(null);
+    const [isMounted, setIsMounted] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeFilter, setActiveFilter] = useState('All');
 
-    useEffect(() => {
-        const fetchVenues = async () => {
-            const { data, error } = await supabase.from('venues').select('*');
-            if (data) {
-                setVenues(data);
-            }
-            setLoading(false);
-        };
-        fetchVenues();
-    }, []);
-
-    // Use static fallbacks for UI layout if no data yet (for presentation)
     const defaultVenues = [
         {
             id: '1',
             name: 'Sheraton Addis',
             location: 'Bole, Addis Ababa',
             capacity: 1500,
+            type: 'Luxury Hotel',
+            price: '$$$$',
+            rating: 4.9,
             images: ['https://lh3.googleusercontent.com/aida-public/AB6AXuBTO75ATLLxIMGxfHSryR5zWEG1AXO5slRut80_Z3FAT23AxueYURycYRsvfHnzg-dzSVGX-WnpLDXuaFaMK8iw3NPTc9eHodn3cD_RvVt4A_sn-bIcs454A0rBiRftdFGPx3mYxRksFHD8l8rlheoTtRRr-fDETf7n7bwI1TCI6pNt-jeAlaAKC3ifcJcM_mLq2gV0LCDAWUuxcpFbmK0JvYtJnmbJ7yIyd17Mm37voxY7Sh0njddi7fEP5J3kmuQu_zeG7Azuh_U'],
-            description: 'Luxurious grand ballroom with crystal chandeliers, gold trimmings, and elegant flower arrangements in a high-end Addis hotel',
+            description: 'Luxurious grand ballroom with crystal chandeliers, gold trimmings, and elegant flower arrangements in the heart of the capital.',
         },
         {
             id: '2',
             name: 'Skylight Hotel',
             location: 'Airport Road, Addis Ababa',
             capacity: 2000,
+            type: 'Modern Hotel',
+            price: '$$$$',
+            rating: 4.8,
             images: ['https://lh3.googleusercontent.com/aida-public/AB6AXuAMd24SZENpYYTg4dLkItpCbvgsv5hM1g2dAHBiMv8P95E41R1qxWioQhI-gAYsSInnHJ5ghEFmSjidhgJL4SRTM_ppbpoyIuXwj4KA4FxhNMCa_80v7Bg1a6gNGC1NYtaV3Oq2IrzjxzLaa5WHxM3mpFJ9QGh5khmO0CN6LKRpQg-vT1OhBtFO0fDb0gOVKk-ni8bMAFttVQedDEglSYFHrpVNMcWlJogPn3pnGMILVZar5r7lUnIVItx1IzqBkl9pcg_8oz24w9E'],
-            description: 'Modern architectural marvel hotel interior with high ceilings, marble floors and floor-to-ceiling windows overlooking Addis Ababa',
+            description: 'Modern architectural marvel with high ceilings, marble floors and floor-to-ceiling windows overlooking the city.',
         },
         {
             id: '3',
             name: 'Ghion Garden Halls',
             location: 'Stadium, Addis Ababa',
             capacity: 800,
+            type: 'Garden Estate',
+            price: '$$$',
+            rating: 4.7,
             images: ['https://lh3.googleusercontent.com/aida-public/AB6AXuBySZBU-_ci83O7Uf2v9yuV-18jQNMBg21uN-yt_tvlDGsiTClc88SNJAj9lhsT_6XOuZPfz7-oC8Sljo5sWxHOc5kU2dzhEeKy-s5mMF1kep3dJuJ1-PbyKkQ0EjikXpn191T7AnnIaowk7nguw4-xFCVDlKfXesG1CkVk8231VFVNeJRH9tO6rdu3nicf1UBdUswbZZtNJcQyCkyoIGeehAk3EXOKjCnviXxALNtk4PtyBjs3Vx63-bhxWM6n3GgH_GsOPkuDcGs'],
-            description: 'Lush green garden setting with traditional Ethiopian white tents and colorful flora at golden hour',
+            description: 'Lush green garden setting with traditional Ethiopian white tents and colorful flora at golden hour.',
         },
         {
             id: '4',
             name: 'Kuriftu Bishoftu',
             location: 'Bishoftu (Debre Zeyit)',
             capacity: 500,
+            type: 'Resort',
+            price: '$$$$',
+            rating: 4.9,
             images: ['https://lh3.googleusercontent.com/aida-public/AB6AXuCd-478I1RH8FjSL-CPHiugg5m5buWedXHlTGtGAo_DGzKyRtPsJSu9WV4ItHZhRJn1ljCLqOlD0sV4kFa-jAJrme81fdDpAX6fDgju6lvwGlHC_qI4PMP8ot5HrVucHZX0nud8VGHNTZx3BXfIKlLAde0wNgz542Yf6vkf_9PR3xy9QJpwGjodOrW81iGA8JZLLxtwhPMGyFwxTgUo2SIqxr7fWI5ZGV7iaqQZEv43RgGwuauK3k4vL2LB7x3Qonp5qoVN_02D7N4'],
-            description: 'Lakeside resort with traditional straw-roof huts and luxury lounge area overlooking a serene lake at sunset',
+            description: 'Lakeside resort with traditional architecture and luxury lounge area overlooking a serene volcanic lake.',
         }
     ];
 
-    const displayVenues = venues.length > 0 ? venues : defaultVenues;
+    useEffect(() => {
+        setIsMounted(true);
+        const fetchVenues = async () => {
+            const { data, error } = await supabase.from('venues').select('*');
+            if (data && data.length > 0) {
+                setVenues(data);
+            } else {
+                setVenues(defaultVenues);
+            }
+            setLoading(false);
+        };
+        fetchVenues();
+    }, []);
+
+    const filteredVenues = (venues.length > 0 ? venues : defaultVenues).filter(v =>
+        (v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            v.location.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (activeFilter === 'All' || v.type?.toLowerCase().includes(activeFilter.toLowerCase()))
+    );
 
     return (
-        <>
+        <div className="bg-[#0a0a0a] min-h-screen text-stone-200 font-sans selection:bg-amber-500/30">
             <Header />
-            <main className="min-h-screen">
-                <section className="px-8 pt-12 pb-8 max-w-screen-2xl mx-auto">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div>
-                            <h1 className="font-headline text-5xl font-bold text-secondary mb-4 tracking-tight">Discover Grandeur</h1>
-                            <p className="text-on-surface-variant max-w-lg leading-relaxed">From the palatial halls of Bole to hidden garden gems in the highlands, find the perfect stage for your heritage wedding.</p>
-                        </div>
-                        <div className="flex gap-4 items-center bg-surface-container-low p-2 rounded-xl border border-outline-variant/20">
-                            <div className="px-4 py-2 flex items-center gap-3 cursor-pointer hover:bg-surface-container transition-colors rounded-lg">
-                                <span className="material-symbols-outlined text-primary">filter_list</span>
-                                <span className="text-sm font-medium">Filter Venues</span>
-                            </div>
-                            <div className="h-6 w-px bg-outline-variant/30"></div>
-                            <button className="bg-surface-container-lowest px-6 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-surface-container transition-colors">Sort by Rating</button>
-                        </div>
-                    </div>
-                </section>
 
-                <section className="grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[800px] border-t-4 border-amber-600/10">
-                    <div className="lg:col-span-7 p-8 bg-surface-container-low/30 overflow-y-auto hide-scrollbar max-h-[800px]">
-                        {loading ? (
-                            <div className="flex justify-center items-center h-full">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {displayVenues.map((venue, i) => (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.1 }}
-                                        key={venue.id}
-                                        onClick={() => setSelectedVenue(venue)}
-                                        className="group relative bg-surface-container-lowest rounded-lg overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/5 cursor-pointer"
-                                    >
-                                        <div className="aspect-[4/3] overflow-hidden relative">
-                                            <img
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                src={venue.images[0]}
-                                                alt={venue.name}
-                                            />
-                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                                                <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                                <span className="text-xs font-bold">4.9</span>
-                                            </div>
-                                        </div>
-                                        <div className="p-6">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-headline text-xl font-bold text-on-surface">{venue.name}</h3>
-                                                <span className="text-primary font-bold">$$$</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-on-surface-variant text-sm mb-4">
-                                                <span className="material-symbols-outlined text-sm">location_on</span>
-                                                <span>{venue.location}</span>
-                                            </div>
-                                            <div className="flex gap-4 mb-6">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] uppercase tracking-wider text-outline">Capacity</span>
-                                                    <span className="text-sm font-bold">{venue.capacity} Guests</span>
-                                                </div>
-                                                <div className="w-px h-8 bg-outline-variant/30"></div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] uppercase tracking-wider text-outline">Type</span>
-                                                    <span className="text-sm font-bold">Luxury Venue</span>
-                                                </div>
-                                            </div>
-                                            <button className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-3 rounded-xl font-bold text-sm tracking-wide transition-all group-hover:shadow-lg group-hover:shadow-primary/20">
-                                                Select Venue
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        )}
+            <main className="max-w-[1800px] mx-auto px-6 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+                {/* Left Column: Explorer Content */}
+                <div className={`lg:col-span-7 space-y-12 ${selectedVenue ? 'hidden lg:block' : 'block'}`}>
+
+                    {/* Header Section */}
+                    <div className="space-y-6">
+                        <motion.h1
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="text-6xl md:text-7xl font-serif italic text-white tracking-tight"
+                        >
+                            Heritage <br />
+                            <span className="text-amber-500 not-italic uppercase text-4xl md:text-5xl font-sans font-bold tracking-[0.2em] block mt-2">Venues</span>
+                        </motion.h1>
+                        <p className="text-stone-400 max-w-xl text-lg leading-relaxed">
+                            Discover the most atmospheric stages for your cinematic union. From the palatial halls of Addis to serene lakeside resorts.
+                        </p>
                     </div>
 
-                    <div className="lg:col-span-5 relative bg-surface-container-highest min-h-[500px] overflow-hidden">
-                        <div className="absolute inset-0 bg-stone-200 tibeb-pattern opacity-40"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="relative w-full h-full p-12">
-                                <div className="absolute bottom-10 left-10 bg-surface/90 backdrop-blur px-4 py-3 rounded-xl shadow-xl border border-outline-variant/20 flex flex-col gap-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full bg-primary"></div>
-                                        <span className="text-xs font-bold">Selected Venue</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full bg-secondary"></div>
-                                        <span className="text-xs font-bold">Available Venues</span>
-                                    </div>
-                                </div>
-
-                                <div className="absolute top-10 right-10 flex flex-col gap-2">
-                                    <button className="bg-surface p-3 rounded-full shadow-lg hover:bg-primary-container transition-colors">
-                                        <span className="material-symbols-outlined">add</span>
-                                    </button>
-                                    <button className="bg-surface p-3 rounded-full shadow-lg hover:bg-primary-container transition-colors">
-                                        <span className="material-symbols-outlined">remove</span>
-                                    </button>
-                                    <button className="bg-surface p-3 rounded-full shadow-lg hover:bg-primary-container transition-colors">
-                                        <span className="material-symbols-outlined">my_location</span>
-                                    </button>
-                                </div>
-                            </div>
+                    {/* Filter & Search Bar */}
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <div className="relative flex-1 group w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 group-focus-within:text-amber-500 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Search by name or location..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-stone-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all placeholder:text-stone-600 shadow-inner"
+                            />
                         </div>
-
-                        <AnimatePresence>
-                            {selectedVenue && (
-                                <motion.div
-                                    initial={{ y: 100, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    exit={{ y: 100, opacity: 0 }}
-                                    className="absolute bottom-8 right-8 left-8 bg-surface-container-lowest/95 backdrop-blur-md p-6 rounded-2xl shadow-2xl border border-primary/10"
+                        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar shrink-0 w-full md:w-auto">
+                            {['All', 'Hotel', 'Garden', 'Resort'].map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setActiveFilter(f)}
+                                    className={`px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all border ${activeFilter === f ? 'bg-white text-black border-white' : 'bg-stone-900/50 text-stone-500 border-white/5 hover:border-white/20'}`}
                                 >
-                                    <div className="flex gap-6 relative">
-                                        <button
-                                            onClick={() => setSelectedVenue(null)}
-                                            className="absolute -top-2 -right-2 bg-surface rounded-full p-1 text-on-surface-variant hover:text-primary z-10 shadow-sm"
-                                        >
-                                            <span className="material-symbols-outlined text-sm">close</span>
-                                        </button>
-                                        <img
-                                            className="w-32 h-32 object-cover rounded-xl shadow-inner"
-                                            src={selectedVenue.images[0]}
-                                            alt={selectedVenue.name}
-                                        />
-                                        <div className="flex-1">
-                                            <span className="text-primary text-[10px] font-bold uppercase tracking-[0.2em] mb-1 block">Featured Venue</span>
-                                            <h4 className="font-headline text-2xl font-bold text-on-surface mb-1">{selectedVenue.name}</h4>
-                                            <p className="text-sm text-on-surface-variant mb-4 line-clamp-2">{selectedVenue.description}</p>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex gap-4">
-                                                    <div className="flex items-center gap-1">
-                                                        <span className="material-symbols-outlined text-secondary text-sm">groups</span>
-                                                        <span className="text-xs font-bold">{selectedVenue.capacity}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <span className="material-symbols-outlined text-secondary text-sm">restaurant</span>
-                                                        <span className="text-xs font-bold">Full Catering</span>
-                                                    </div>
-                                                </div>
-                                                <button className="text-primary font-bold text-sm underline underline-offset-4">Explore Gallery</button>
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Venues Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {loading ? (
+                            Array(4).fill(0).map((_, i) => (
+                                <div key={i} className="aspect-[4/5] bg-stone-900/50 animate-pulse rounded-3xl border border-white/5"></div>
+                            ))
+                        ) : (
+                            filteredVenues.map((venue, i) => (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.1 }}
+                                    key={venue.id}
+                                    onClick={() => setSelectedVenue(venue)}
+                                    className={`group relative aspect-[4/5] rounded-[2.5rem] overflow-hidden cursor-pointer transition-all duration-700 border-4 ${selectedVenue?.id === venue.id ? 'border-amber-500/50 shadow-[0_0_50px_rgba(245,158,11,0.2)]' : 'border-transparent'}`}
+                                >
+                                    <img
+                                        src={venue.images?.[0]}
+                                        alt={venue.name}
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
+
+                                    <div className="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
+                                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                        <span className="text-[10px] font-bold text-white">{venue.rating || 4.9}</span>
+                                    </div>
+
+                                    <div className="absolute bottom-8 left-8 right-8 space-y-3">
+                                        <div className="flex justify-between items-end gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-500 mb-1">{venue.type || 'Luxury Venue'}</p>
+                                                <h3 className="text-3xl font-serif italic text-white leading-tight">{venue.name}</h3>
+                                            </div>
+                                            <span className="text-sm font-bold text-white/50">{venue.price || '$$$'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-stone-400 text-xs">
+                                            <MapPin className="w-3 h-3 text-stone-600" />
+                                            <span>{venue.location}</span>
+                                        </div>
+                                        <div className="pt-4 border-t border-white/10 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">{venue.capacity} GUESTS</span>
+                                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-black">
+                                                <ArrowRight className="w-4 h-4" />
                                             </div>
                                         </div>
                                     </div>
                                 </motion.div>
-                            )}
-                        </AnimatePresence>
+                            ))
+                        )}
+                        {!loading && filteredVenues.length === 0 && (
+                            <div className="col-span-full py-20 text-center space-y-4 border-2 border-dashed border-white/5 rounded-[3rem]">
+                                <X className="w-12 h-12 text-stone-800 mx-auto" />
+                                <p className="text-stone-500 italic uppercase text-[10px] tracking-widest">No heritage stages found for your search.</p>
+                            </div>
+                        )}
                     </div>
-                </section>
+                </div>
 
-                <div className="w-full h-12 tibeb-pattern"></div>
+                {/* Right Column: Interaction & Map (Sticky) */}
+                <div className={`lg:col-span-5 h-[calc(100vh-200px)] sticky top-32 space-y-6 ${selectedVenue ? 'block' : 'hidden lg:block'}`}>
+                    <AnimatePresence mode="wait">
+                        {selectedVenue ? (
+                            <motion.div
+                                key={selectedVenue.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="h-full flex flex-col space-y-6"
+                            >
+                                {/* Active Venue Card */}
+                                <div className="bg-stone-900/40 backdrop-blur-3xl rounded-[3rem] p-10 border border-white/10 space-y-8 flex-1 overflow-y-auto hide-scrollbar custom-scrollbar">
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-1">
+                                            {/* Mobile-only back button */}
+                                            <button
+                                                onClick={() => setSelectedVenue(null)}
+                                                className="lg:hidden flex items-center gap-2 text-stone-500 hover:text-white transition-colors mb-4 text-[10px] font-bold uppercase tracking-widest pl-1"
+                                            >
+                                                <ArrowRight className="w-3 h-3 rotate-180" />
+                                                Back to Venues
+                                            </button>
+                                            <h2 className="text-4xl font-serif italic text-white leading-tight">{selectedVenue.name}</h2>
+                                            <p className="text-amber-500 font-bold uppercase tracking-[0.2em] text-[10px]">{selectedVenue.location}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setSelectedVenue(null)}
+                                            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors border border-white/5"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
 
-                <section className="py-24 px-8 max-w-screen-2xl mx-auto">
-                    <h2 className="font-headline text-4xl font-bold text-center text-secondary mb-16 italic">Curated Collections</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-surface-container-low min-h-[400px]">
-                            <img className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_yfBodKGj8HqZECvreOIzZafAxNX_ObmesoWcQ0J6ziAWAE12MqkAiqcMtIX7CTKCi5r9WjnxpNSgPLRBX0zcrrINO1XUB7eDHEZR5xgQNWXVEN6av47r0odtLBVJ9vopr1qNtp1j6Z1-7Za423H44t20J7hnvKktkVci5kiCNrrDP_rP6ZyFeCLgiDSf_JbrN0xXdPoqDz8ifN1NJU8eo9CO7DLy7HEJBCX7-jdPm2G-FP6JlYawUO7c77pW_9bL-BJeaUjzAcs" alt="Highland Heights" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-10">
-                                <h3 className="text-white font-headline text-3xl font-bold mb-2">Highland Heights</h3>
-                                <p className="text-white/80 text-sm max-w-sm mb-6">Breathtaking panoramic views of the Entoto mountains for an unforgettable ceremony.</p>
-                                <button className="w-fit text-primary-fixed font-bold border-b border-primary-fixed pb-1">Browse 12 Venues</button>
-                            </div>
-                        </div>
-                        <div className="md:col-span-2 group relative overflow-hidden rounded-xl bg-surface-container-low min-h-[240px]">
-                            <img className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFr9Qq7_I6GHw6cYjnROpoYkMfy2mKDa0eyuUYmvWbbiDUtBBFeYMIqiXMhJlVcljw8wr7WJazHArDJ2ts0Ufw9_3FCo0DrWPIiw6EPxZ0BuHx2N_IBzyToTHfxNTlnbHe4D6rimhefdA2_CP45Oq85b5AkQTWrdNWEFkCI3UplfzhMKDSdYHjC0tuRuUs3BjXfSN4dH3r0ubTLOsfYzxH7MAqFxB7lKeoStwy5IKZq8VRoINjm1IrvcEZAJSCw_-n9Os1FOFaY2g" alt="Boutique & Modern" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8">
-                                <h3 className="text-white font-headline text-2xl font-bold">Boutique &amp; Modern</h3>
-                                <button className="w-fit text-primary-fixed font-bold text-sm border-b border-primary-fixed">Browse 8 Venues</button>
-                            </div>
-                        </div>
-                        <div className="group relative overflow-hidden rounded-xl bg-surface-container-low min-h-[240px]">
-                            <img className="absolute inset-0 w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc6asv-ti8aa6HGSGD1sgs2vD0TgcEE-Tx2OoZtgScj-t5-Xj_5sCCOrhBjUrUzofcp3FfuRjPpVP1dK0KugwCcJ7pOS15HAnUzJEO6jocH31mkVSjYtFPeEVcHZko3EBBioK8JyGmUXElOxARHp_fl9dfl_-p6D6R19Fb9zCuX6U3giRUAgBaLMISWL6n6ZBm2ORLXVhKNp4gyGl3NL3fd2ISe84I4FwJDuH1t5P6poVtRxLQxTECH0DuNPovdFOAlbNl14A9ZEg" alt="Resorts" />
-                            <div className="absolute inset-0 bg-primary/20 flex flex-col justify-center items-center p-6 text-center">
-                                <h3 className="font-headline text-xl font-bold text-on-surface mb-2">Resorts</h3>
-                                <span className="text-xs bg-white/20 backdrop-blur px-3 py-1 rounded-full font-bold">Destination</span>
-                            </div>
-                        </div>
-                        <div className="group relative overflow-hidden rounded-xl bg-surface-container-low min-h-[240px]">
-                            <img className="absolute inset-0 w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNIjnDvmxi7JmiDyxtZ7z0Q0gm1MfyXhiBIckXeUpcw6v0rgPyjXLACfrdej7DJRMgFts7A2wowS9tpXPrdqyqLa7WeyYmDBOClx4xcQiJGNHv8cgIaLoHHJ3joJmGJTA1THEay6zd43Nhvbanx8z6Mbh7gv0uS7jlqp3oaROnrtWLE8F8Qp8AO2RqUUZscSppS9kGQOQaQ8HZDE3NB4d8rRmNGihpFZFwL-oeSsuPPjQtwqhrQ7y9YjY3xn4oUus1j145Ddrb59c" alt="Garden Estates" />
-                            <div className="absolute inset-0 bg-secondary/20 flex flex-col justify-center items-center p-6 text-center">
-                                <h3 className="font-headline text-xl font-bold text-on-surface mb-2">Garden Estates</h3>
-                                <span className="text-xs bg-white/20 backdrop-blur px-3 py-1 rounded-full font-bold">Traditional</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                                    <div className="aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                                        <img src={selectedVenue.images?.[0]} className="w-full h-full object-cover" alt="Detail" />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-start gap-3 text-stone-400">
+                                            <Info className="w-4 h-4 text-stone-600 mt-1 flex-shrink-0" />
+                                            <p className="text-sm italic leading-relaxed">"{selectedVenue.description}"</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-1">
+                                                <p className="text-[9px] font-bold text-stone-500 uppercase tracking-widest">Capacity</p>
+                                                <p className="text-xl font-bold text-white">{selectedVenue.capacity}</p>
+                                            </div>
+                                            <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-1">
+                                                <p className="text-[9px] font-bold text-stone-500 uppercase tracking-widest">Pricing Model</p>
+                                                <p className="text-xl font-bold text-white">{selectedVenue.price}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Real Map Integration */}
+                                    {isMounted && (
+                                        <VenueMap
+                                            address={selectedVenue.name + ", " + selectedVenue.location}
+                                            theme="dark"
+                                            className="mt-4"
+                                        />
+                                    )}
+
+                                    <button className="w-full py-5 bg-white hover:bg-stone-200 text-black rounded-2xl font-bold tracking-[0.2em] uppercase text-xs transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-[0.98]">
+                                        Request Availability Protocol
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="h-full rounded-[3rem] bg-stone-900/20 border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-12 text-center space-y-6"
+                            >
+                                <div className="w-20 h-20 rounded-full bg-stone-900 flex items-center justify-center border border-white/5">
+                                    <Navigation className="w-8 h-8 text-stone-700 animate-pulse" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-bold text-stone-500 uppercase tracking-widest">Select a Venue</h3>
+                                    <p className="text-stone-700 text-sm italic">Reveal the spatial profile and interactive coordinates.</p>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
             </main>
+
             <Footer />
-        </>
+        </div>
     );
 }

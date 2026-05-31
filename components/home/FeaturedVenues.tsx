@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function FeaturedVenues() {
     const venues = [
@@ -46,7 +47,7 @@ export default function FeaturedVenues() {
                         transition={{ duration: 0.5, delay: index * 0.1 }}
                         viewport={{ once: true }}
                         key={index}
-                        className="min-w-[400px] h-[550px] relative rounded-lg overflow-hidden group snap-center shadow-xl"
+                        className="min-w-[85vw] sm:min-w-[400px] h-[500px] md:h-[550px] relative rounded-lg overflow-hidden group snap-center shadow-xl"
                     >
                         <img
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -57,9 +58,9 @@ export default function FeaturedVenues() {
                         <div className="absolute bottom-0 left-0 right-0 p-8 glass-panel bg-black/20 m-4 rounded-lg border border-white/10">
                             <h3 className="font-headline text-2xl text-white mb-2">{venue.name}</h3>
                             <p className="text-white/80 text-sm mb-4">Capacity: {venue.capacity}</p>
-                            <button className="text-primary-fixed font-bold flex items-center gap-2 hover:gap-4 transition-all">
+                            <Link href="/venues" className="text-primary-fixed font-bold flex items-center gap-2 hover:gap-4 transition-all">
                                 View Details <span className="material-symbols-outlined">arrow_right_alt</span>
-                            </button>
+                            </Link>
                         </div>
                     </motion.div>
                 ))}

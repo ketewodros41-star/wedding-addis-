@@ -48,20 +48,20 @@ export default function Footer() {
             </div>
 
             {/* Mobile Bottom Navigation */}
-            <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-6 pt-3 bg-stone-50 dark:bg-stone-950 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] rounded-t-[3rem]">
-                <Link href="/" className="flex flex-col items-center justify-center bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-full px-5 py-2 scale-90 duration-150">
+            <nav className="md:hidden fixed bottom-[env(safe-area-inset-bottom)] left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-3 bg-stone-50/96 dark:bg-stone-950/96 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)] rounded-t-xl border-t border-black/5 dark:border-white/5">
+                <Link href="/" className="flex min-w-0 flex-col items-center justify-center bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-full px-4 py-2 scale-95 duration-150 touch-manipulation">
                     <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
                     <span className="font-sans text-[10px] font-medium tracking-wide uppercase mt-1">Home</span>
                 </Link>
-                <Link href="/inspiration" className="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-amber-600 dark:hover:text-amber-300">
+                <Link href="/inspiration" className="flex min-w-0 flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-4 py-2 hover:text-amber-600 dark:hover:text-amber-300 touch-manipulation">
                     <span className="material-symbols-outlined">auto_awesome</span>
                     <span className="font-sans text-[10px] font-medium tracking-wide uppercase mt-1">Inspiration</span>
                 </Link>
-                <Link href="/booking" className="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-amber-600 dark:hover:text-amber-300">
+                <Link href="/booking" className="flex min-w-0 flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-4 py-2 hover:text-amber-600 dark:hover:text-amber-300 touch-manipulation">
                     <span className="material-symbols-outlined">event_available</span>
                     <span className="font-sans text-[10px] font-medium tracking-wide uppercase mt-1">Bookings</span>
                 </Link>
-                <Link href="/dashboard" className="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-amber-600 dark:hover:text-amber-300">
+                <Link href="/dashboard" className="flex min-w-0 flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-4 py-2 hover:text-amber-600 dark:hover:text-amber-300 touch-manipulation">
                     <span className="material-symbols-outlined">person</span>
                     <span className="font-sans text-[10px] font-medium tracking-wide uppercase mt-1">Profile</span>
                 </Link>

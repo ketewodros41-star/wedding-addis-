@@ -11,7 +11,7 @@ export default function BookingPreview() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
-                className="max-w-4xl mx-auto bg-surface-container-lowest p-12 rounded-lg shadow-2xl relative z-10 border border-outline-variant/20"
+                className="max-w-4xl mx-auto bg-surface-container-lowest p-6 md:p-12 rounded-lg shadow-2xl relative z-10 border border-outline-variant/20"
             >
                 <div className="text-center mb-10">
                     <h2 className="font-headline text-3xl font-bold text-on-surface mb-2">Secure Your Date</h2>
@@ -32,7 +32,7 @@ export default function BookingPreview() {
                         </select>
                     </div>
                     <div className="flex flex-col gap-2 justify-end">
-                        <button className="w-full bg-secondary text-white py-4 rounded-lg font-bold hover:bg-secondary/90 shadow-lg transition-all">
+                        <button type="submit" className="w-full bg-secondary text-white py-4 rounded-lg font-bold hover:bg-secondary/90 shadow-lg transition-all active:scale-[0.98]">
                             Check Availability
                         </button>
                     </div>
